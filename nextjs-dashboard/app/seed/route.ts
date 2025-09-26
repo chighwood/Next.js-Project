@@ -1,32 +1,45 @@
-// import bcrypt from 'bcrypt';
-// import postgres from 'postgres';
-// import { invoices, customers, revenue, users } from '../lib/placeholder-data';
+import { sql } from '@vercel/postgres';
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
+import { invoices, customers, revenue, users } from '../lib/placeholder-data';
 
-// const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
+async function seedUsers() {
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      );
+    `;
 
-// async function seedUsers() {
-//   await sql`
-//     CREATE TABLE IF NOT EXISTS users (
-//       id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-//       name VARCHAR(255) NOT NULL,
-//       email TEXT NOT NULL UNIQUE,
-//       password TEXT NOT NULL
-//     );
-//   `;
+    const insertedUsers = await Promise.all(
+      users.map(async (user) => {
+        const hashedPassword = await bcrypt.hash(user.password, 10);
+        return sql`
+          INSERT INTO users (id, name, email, password)
+          VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
+          ON CONFLICT (id) DO NOTHING;
+        `;
+      }),
+    );
 
-//   const insertedUsers = await Promise.all(
-//     users.map(async (user) => {
-//       const hashedPassword = await bcrypt.hash(user.password, 10);
-//       return sql`
-//         INSERT INTO users (id, name, email, password)
-//         VALUES (${user.id}, ${user.name}, ${user.email}, ${hashedPassword})
-//         ON CONFLICT (id) DO NOTHING;
-//       `;
-//     }),
-//   );
+    return insertedUsers;
+  } catch (error) {
+    console.error('Error seeding users:', error);
+    throw error;
+  }
+}
 
-//   return insertedUsers;
-// }
+export async function GET() {
+  try {
+    await seedUsers();
+    return NextResponse.json({ message: 'Database seeded successfully' }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to seed the database' }, { status: 500 });
+  }
+}
 
 // async function seedInvoices() {
 //   await sql`
