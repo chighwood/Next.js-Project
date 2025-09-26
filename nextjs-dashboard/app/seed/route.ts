@@ -1,7 +1,7 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-import { invoices, customers, revenue, users } from '../lib/placeholder-data';
+import { users } from '../lib/placeholder-data';
 
 async function seedUsers() {
   try {
