@@ -25,7 +25,7 @@ export default function NavLinks() {
   const pathname = usePathname();
   // If the current path is /dashboard, then set that link to active.
   // This is a simple way to do it, but in a larger application, you might want to use a more robust solution.
-  const currentPath = pathname || '/dashboard';
+  // const currentPath = pathname || '/dashboard';
   return (
     <>
       {links.map((link) => {
